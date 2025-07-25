@@ -2,10 +2,22 @@
 #include "ContatoreOggetti.h"
 #include <algorithm>
 
-void ListaDellaSpesa::aggiungiOggetto(const Oggetto& o) {
+void ListaDellaSpesa::aggiungiOggetto(const Oggetto &o) {
+    // Cerca se esiste già un oggetto con lo stesso nome
+    for (auto &oggetto : oggetti) {
+        if (oggetto.getNome() == o.getNome()) {
+            // Se esiste, aggiorna la quantità e notifica
+            oggetto.setQuantita(oggetto.getQuantita() + o.getQuantita());
+            notificaObservers();
+            return;
+        }
+    }
+
+    // Se non esiste, aggiungilo normalmente
     oggetti.push_back(o);
     notificaObservers();
 }
+
 
 void ListaDellaSpesa::rimuoviOggetto(const std::string& nome) {
     oggetti.erase(std::remove_if(oggetti.begin(), oggetti.end(),
