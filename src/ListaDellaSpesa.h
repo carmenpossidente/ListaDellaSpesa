@@ -19,6 +19,9 @@ public:
     void aggiungiOggetto(const Oggetto& o);
     void rimuoviOggetto(const std::string& nome);
     const std::vector<Oggetto>& getOggetti() const;
+    void salvaSuFile(const std::string& filename) const;
+    void caricaDaFile(const std::string& filename);
+
 
     void aggiungiObserver(std::shared_ptr<ContatoreOggetti> obs);
     void rimuoviObserver(std::shared_ptr<ContatoreOggetti> obs);
