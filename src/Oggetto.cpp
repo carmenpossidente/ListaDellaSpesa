@@ -22,6 +22,18 @@ void Oggetto::setQuantita(int nuovaQuantita) {
     quantita = nuovaQuantita;
 }
 
-bool Oggetto::operator==(const Oggetto& altro) const {
-    return nome == altro.nome && categoria == altro.categoria && quantita == altro.quantita;
+
+bool Oggetto::isAcquistato() const {
+    return acquistato;
+}
+
+void Oggetto::setAcquistato(bool valore) {
+    acquistato = valore;
+}
+
+bool Oggetto::operator==(const Oggetto& other) const {
+    return nome == other.nome &&
+           categoria == other.categoria &&
+           quantita == other.quantita &&
+           acquistato == other.acquistato;
 }

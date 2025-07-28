@@ -63,3 +63,59 @@ TEST(ListaDellaSpesaTest, SalvaECaricaListaFunziona) {
     // Rimuove il file temporaneo dopo il test
     std::remove(filename.c_str());
 }
+
+TEST(ListaDellaSpesaTest, FlagAcquistatoFunziona) {
+    ListaDellaSpesa lista;
+    Oggetto latte("Latte", "Alimentari", 2);
+    latte.setAcquistato(true);
+    lista.aggiungiOggetto(latte);
+
+    auto oggetti = lista.getOggetti();
+    ASSERT_EQ(oggetti.size(), 1);
+    EXPECT_TRUE(oggetti[0].isAcquistato());
+
+    // Ora lo salviamo e lo ricarichiamo
+    std::string filename = "test_flag_acquistato.json";
+    lista.salvaSuFile(filename);
+
+    ListaDellaSpesa lista2;
+    lista2.caricaDaFile(filename);
+
+    auto oggetti2 = lista2.getOggetti();
+    ASSERT_EQ(oggetti2.size(), 1);
+    EXPECT_TRUE(oggetti2[0].isAcquistato());
+}
+
+TEST(ListaDellaSpesaTest, FiltraPerCategoria) {
+    ListaDellaSpesa lista;
+    lista.aggiungiOggetto(Oggetto("Latte", "Alimentari", 2));
+    lista.aggiungiOggetto(Oggetto("Shampoo", "Igiene", 1));
+    lista.aggiungiOggetto(Oggetto("Pane", "Alimentari", 3));
+
+    auto alimentari = lista.filtraPerCategoria("Alimentari");
+    ASSERT_EQ(alimentari.size(), 2);
+    EXPECT_EQ(alimentari[0].getNome(), "Latte");
+    EXPECT_EQ(alimentari[1].getNome(), "Pane");
+}
+
+TEST(ListaDellaSpesaTest, ContatorePerCategoria) {
+    ListaDellaSpesa lista;
+    lista.aggiungiOggetto(Oggetto("Latte", "Alimentari", 2));
+    lista.aggiungiOggetto(Oggetto("Pane", "Alimentari", 1));
+    lista.aggiungiOggetto(Oggetto("Sapone", "Igiene", 3));
+
+    auto contatore = lista.contaPerCategoria();
+    EXPECT_EQ(contatore["Alimentari"], 3); // 2 + 1
+    EXPECT_EQ(contatore["Igiene"], 3);
+}
+
+TEST(ListaDellaSpesaTest, TotaleDaAcquistare) {
+    ListaDellaSpesa lista;
+    auto l = Oggetto("Latte", "Alimentari", 2);
+    auto s = Oggetto("Shampoo", "Igiene", 1);
+    l.setAcquistato(false);
+    s.setAcquistato(true);
+    lista.aggiungiOggetto(l);
+    lista.aggiungiOggetto(s);
+    EXPECT_EQ(lista.getQuantitaDaAcquistare(), 2);
+}

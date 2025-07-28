@@ -7,19 +7,18 @@
 using json = nlohmann::json;
 
 void ListaDellaSpesa::aggiungiOggetto(const Oggetto &o) {
-    // Cerca se esiste già un oggetto con lo stesso nome
     for (auto &oggetto : oggetti) {
         if (oggetto.getNome() == o.getNome()) {
-            // Se esiste, aggiorna la quantità e notifica
             oggetto.setQuantita(oggetto.getQuantita() + o.getQuantita());
             notificaObservers();
+            if (!defaultFilename.empty()) salvaSuFile(defaultFilename);
             return;
         }
     }
 
-    // Se non esiste, aggiungilo normalmente
     oggetti.push_back(o);
     notificaObservers();
+    if (!defaultFilename.empty()) salvaSuFile(defaultFilename);
 }
 
 
@@ -29,6 +28,12 @@ void ListaDellaSpesa::rimuoviOggetto(const std::string& nome) {
                                      return o.getNome() == nome;
                                  }), oggetti.end());
     notificaObservers();
+    if (!defaultFilename.empty()) salvaSuFile(defaultFilename);
+}
+
+
+void ListaDellaSpesa::setFilename(const std::string& filename) {
+    defaultFilename = filename;
 }
 
 const std::vector<Oggetto>& ListaDellaSpesa::getOggetti() const {
@@ -57,6 +62,7 @@ void ListaDellaSpesa::salvaSuFile(const std::string& filename) const {
         j_ogg["nome"] = ogg.getNome();
         j_ogg["categoria"] = ogg.getCategoria();
         j_ogg["quantita"] = ogg.getQuantita();
+        j_ogg["acquistato"] = ogg.isAcquistato();
         j_array.push_back(j_ogg);
     }
 
@@ -79,8 +85,39 @@ void ListaDellaSpesa::caricaDaFile(const std::string& filename) {
                 j_ogg["categoria"].get<std::string>(),
                 j_ogg["quantita"].get<int>()
         );
+        if (j_ogg.contains("acquistato")) {
+            o.setAcquistato(j_ogg["acquistato"].get<bool>());
+        }
         oggetti.push_back(o);
     }
 
     notificaObservers();  // notifica dopo caricamento
+}
+
+std::vector<Oggetto> ListaDellaSpesa::filtraPerCategoria(const std::string& cat) const {
+    std::vector<Oggetto> result;
+    for (const auto& o : oggetti) {
+        if (o.getCategoria() == cat) {
+            result.push_back(o);
+        }
+    }
+    return result;
+}
+
+std::map<std::string, int> ListaDellaSpesa::contaPerCategoria() const {
+    std::map<std::string, int> conteggio;
+    for (const auto& o : oggetti) {
+        conteggio[o.getCategoria()] += o.getQuantita();
+    }
+    return conteggio;
+}
+
+int ListaDellaSpesa::getQuantitaDaAcquistare() const {
+    int sum = 0;
+    for (const auto& o : oggetti) {
+        if (!o.isAcquistato()) {
+            sum += o.getQuantita();
+        }
+    }
+    return sum;
 }

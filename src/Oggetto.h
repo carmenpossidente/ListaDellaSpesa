@@ -12,6 +12,7 @@ private:
     std::string nome;
     std::string categoria;
     int quantita;
+    bool acquistato = false;
 
 public:
     Oggetto(const std::string& nome, const std::string& categoria, int quantita);
@@ -19,6 +20,8 @@ public:
     std::string getNome() const;
     std::string getCategoria() const;
     int getQuantita() const;
+    bool isAcquistato() const;           // getter
+    void setAcquistato(bool valore);     // setter
 
     void setQuantita(int nuovaQuantita);
 
