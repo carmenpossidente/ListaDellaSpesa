@@ -199,7 +199,6 @@ public:
         btnAggiungi->setText(QCoreApplication::translate("MainWindow", "Aggiungi", nullptr));
         label_4->setText(QCoreApplication::translate("MainWindow", "Filtro per categoria: ", nullptr));
         label_5->setText(QCoreApplication::translate("MainWindow", "Lista:", nullptr));
-        label_6->setText(QCoreApplication::translate("MainWindow", "Totale oggetti da acquistare:", nullptr));
         labelTotale->setText(QString());
     } // retranslateUi
 
