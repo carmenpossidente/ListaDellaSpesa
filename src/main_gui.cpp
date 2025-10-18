@@ -1,11 +1,4 @@
-#include "mainwindow.h"
-
-#include <QApplication>
-
-int main(int argc, char *argv[])
-{
-    QApplication a(argc, argv);
-    MainWindow w;
-    w.show();
-    return a.exec();
+// File placeholder per la GUI - da implementare
+int main() {
+    return 0;
 }

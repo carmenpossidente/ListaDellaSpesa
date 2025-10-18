@@ -3,6 +3,9 @@
 
 #include "Observer.h"
 #include <cstddef>
+#include <string>
+#include <vector>
+#include "Oggetto.h"
 
 class ContatoreOggetti : public Observer {
 private:
@@ -11,7 +14,7 @@ private:
 public:
     ContatoreOggetti();
 
-    void aggiorna(const std::vector<Oggetto>& nuovaLista) override;
+    void aggiorna(const std::string& messaggio) override;
 
     std::size_t getNumeroOggetti() const;
 };

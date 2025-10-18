@@ -7,17 +7,25 @@
 #include <map>
 #include "Oggetto.h"
 #include "Observer.h"
-#include "ContatoreOggetti.h"
 
-class ListaDellaSpesa {
+class ListaDellaSpesa : public Observable {
 private:
     std::vector<Oggetto> oggetti;
-    std::vector<std::shared_ptr<ContatoreOggetti>> observers;
+    std::vector<Observer*> observers;
     std::string defaultFilename;
+    std::string nomeLista;
+    std::string proprietario;
 
-    void notificaObservers() const;
+    void notificaObservers(const std::string& messaggio);
 
 public:
+    ListaDellaSpesa(const std::string& nome = "", const std::string& proprietario = "");
+
+    void setNome(const std::string& nome);
+    std::string getNome() const;
+    void setProprietario(const std::string& prop);
+    std::string getProprietario() const;
+
     void aggiungiOggetto(const Oggetto& o);
     void rimuoviOggetto(const std::string& nome);
     void setFilename(const std::string& filename);
@@ -28,9 +36,9 @@ public:
     std::map<std::string, int> contaPerCategoria() const;
     int getQuantitaDaAcquistare() const;
 
-    void aggiungiObserver(std::shared_ptr<ContatoreOggetti> obs);
-    void rimuoviObserver(std::shared_ptr<ContatoreOggetti> obs);
+    // Observable implementation
+    void aggiungiObserver(Observer* obs) override;
+    void rimuoviObserver(Observer* obs) override;
 };
 
 #endif
-

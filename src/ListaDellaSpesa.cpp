@@ -6,18 +6,26 @@
 
 using json = nlohmann::json;
 
+ListaDellaSpesa::ListaDellaSpesa(const std::string& nome, const std::string& proprietario)
+        : nomeLista(nome), proprietario(proprietario) {}
+
+void ListaDellaSpesa::setNome(const std::string& nome) { nomeLista = nome; }
+std::string ListaDellaSpesa::getNome() const { return nomeLista; }
+void ListaDellaSpesa::setProprietario(const std::string& prop) { proprietario = prop; }
+std::string ListaDellaSpesa::getProprietario() const { return proprietario; }
+
 void ListaDellaSpesa::aggiungiOggetto(const Oggetto &o) {
     for (auto &oggetto : oggetti) {
         if (oggetto.getNome() == o.getNome()) {
             oggetto.setQuantita(oggetto.getQuantita() + o.getQuantita());
-            notificaObservers();
+            notificaObservers("Oggetto aggiornato: " + o.getNome());
             if (!defaultFilename.empty()) salvaSuFile(defaultFilename);
             return;
         }
     }
 
     oggetti.push_back(o);
-    notificaObservers();
+    notificaObservers("Oggetto aggiunto: " + o.getNome());
     if (!defaultFilename.empty()) salvaSuFile(defaultFilename);
 }
 
@@ -27,7 +35,7 @@ void ListaDellaSpesa::rimuoviOggetto(const std::string& nome) {
                                  [&nome](const Oggetto& o) {
                                      return o.getNome() == nome;
                                  }), oggetti.end());
-    notificaObservers();
+    notificaObservers("Oggetto rimosso: " + nome);
     if (!defaultFilename.empty()) salvaSuFile(defaultFilename);
 }
 
@@ -40,17 +48,17 @@ const std::vector<Oggetto>& ListaDellaSpesa::getOggetti() const {
     return oggetti;
 }
 
-void ListaDellaSpesa::aggiungiObserver(std::shared_ptr<ContatoreOggetti> obs) {
+void ListaDellaSpesa::aggiungiObserver(Observer* obs) {
     observers.push_back(obs);
 }
 
-void ListaDellaSpesa::rimuoviObserver(std::shared_ptr<ContatoreOggetti> obs) {
+void ListaDellaSpesa::rimuoviObserver(Observer* obs) {
     observers.erase(std::remove(observers.begin(), observers.end(), obs), observers.end());
 }
 
-void ListaDellaSpesa::notificaObservers() const {
-    for (const auto& obs : observers) {
-        obs->aggiorna(oggetti);
+void ListaDellaSpesa::notificaObservers(const std::string& messaggio) {
+    for (auto& obs : observers) {
+        obs->aggiorna(messaggio);
     }
 }
 
@@ -91,7 +99,7 @@ void ListaDellaSpesa::caricaDaFile(const std::string& filename) {
         oggetti.push_back(o);
     }
 
-    notificaObservers();  // notifica dopo caricamento
+    notificaObservers("Lista caricata da file");  // notifica dopo caricamento
 }
 
 std::vector<Oggetto> ListaDellaSpesa::filtraPerCategoria(const std::string& cat) const {

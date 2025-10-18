@@ -5,6 +5,11 @@ add_library(lista_spesa_lib
         ContatoreOggetti.cpp
         Observer.h
         ContatoreOggetti.h
+        Utente.cpp
+        Utente.h
+        GestoreListe.cpp
+        GestoreListe.h
+        main_gui.cpp
 )
 
 # Includi i percorsi necessari (sia per la libreria che per nlohmann_json)
