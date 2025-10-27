@@ -5,7 +5,6 @@
 #include <cstddef>
 #include <string>
 #include <vector>
-#include "Oggetto.h"
 
 class ContatoreOggetti : public Observer {
 private:

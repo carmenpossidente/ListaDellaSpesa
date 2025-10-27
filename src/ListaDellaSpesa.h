@@ -8,10 +8,13 @@
 #include "Oggetto.h"
 #include "Observer.h"
 
+// Forward declaration (per risolvere dipendenza circolare)
+class Utente;
+
 class ListaDellaSpesa : public Observable {
 private:
     std::vector<Oggetto> oggetti;
-    std::vector<Observer*> observers;
+    std::vector<std::shared_ptr<Observer>> observers;
     std::string defaultFilename;
     std::string nomeLista;
     std::string proprietario;
@@ -37,8 +40,8 @@ public:
     int getQuantitaDaAcquistare() const;
 
     // Observable implementation
-    void aggiungiObserver(Observer* obs) override;
-    void rimuoviObserver(Observer* obs) override;
+    void aggiungiObserver(std::shared_ptr<Observer> obs) override;
+    void rimuoviObserver(std::shared_ptr<Observer> obs) override;
 };
 
 #endif

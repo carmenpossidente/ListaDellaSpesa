@@ -1,6 +1,7 @@
 #include "gtest/gtest.h"
 #include "../src/ContatoreOggetti.h"
 #include "../src/ListaDellaSpesa.h"
+#include <memory>
 
 TEST(ContatoreOggettiTest, InizialmenteZero) {
     ContatoreOggetti c;
@@ -9,29 +10,29 @@ TEST(ContatoreOggettiTest, InizialmenteZero) {
 
 TEST(ContatoreOggettiTest, NotificaDopoAggiuntaOggetto) {
     ListaDellaSpesa lista;
-    ContatoreOggetti contatore;
-    lista.aggiungiObserver(&contatore);
+    auto contatore = std::make_shared<ContatoreOggetti>();
+    lista.aggiungiObserver(contatore);
     lista.aggiungiOggetto(Oggetto("Latte", "Alimentari", 2));
 
-    EXPECT_EQ(contatore.getNumeroOggetti(), 1);
+    EXPECT_EQ(contatore->getNumeroOggetti(), 1);
 }
 
 TEST(ContatoreOggettiTest, NotificaDopoRimozioneOggetto) {
     ListaDellaSpesa lista;
-    ContatoreOggetti contatore;
-    lista.aggiungiObserver(&contatore);
+    auto contatore = std::make_shared<ContatoreOggetti>();
+    lista.aggiungiObserver(contatore);
     lista.aggiungiOggetto(Oggetto("Latte", "Alimentari", 2));
     lista.aggiungiOggetto(Oggetto("Pane", "Alimentari", 1));
     lista.rimuoviOggetto("Latte");
 
-    EXPECT_EQ(contatore.getNumeroOggetti(), 1); // solo "Pane" rimasto
+    EXPECT_EQ(contatore->getNumeroOggetti(), 1); // solo "Pane" rimasto
 }
 
 TEST(ContatoreOggettiTest, RiceveNotifiche) {
     ListaDellaSpesa lista;
-    ContatoreOggetti contatore;
+    auto contatore = std::make_shared<ContatoreOggetti>();
 
-    lista.aggiungiObserver(&contatore);
+    lista.aggiungiObserver(contatore);
 
     // Aggiungi oggetto - dovrebbe triggerare una notifica
     Oggetto oggetto("Latte", "Latticini", 1);

@@ -15,20 +15,21 @@ void ListaDellaSpesa::setProprietario(const std::string& prop) { proprietario = 
 std::string ListaDellaSpesa::getProprietario() const { return proprietario; }
 
 void ListaDellaSpesa::aggiungiOggetto(const Oggetto &o) {
+    // Controlla se l'oggetto esiste già
     for (auto &oggetto : oggetti) {
-        if (oggetto.getNome() == o.getNome()) {
+        if (oggetto.getNome() == o.getNome() && oggetto.getCategoria() == o.getCategoria()) {
             oggetto.setQuantita(oggetto.getQuantita() + o.getQuantita());
-            notificaObservers("Oggetto aggiornato: " + o.getNome());
+            notificaObservers("Oggetto aggiornato: " + o.getNome() + " (nuova quantità: " + std::to_string(oggetto.getQuantita()) + ")");
             if (!defaultFilename.empty()) salvaSuFile(defaultFilename);
             return;
         }
     }
 
+    // Se non esiste, aggiungi nuovo oggetto
     oggetti.push_back(o);
     notificaObservers("Oggetto aggiunto: " + o.getNome());
     if (!defaultFilename.empty()) salvaSuFile(defaultFilename);
 }
-
 
 void ListaDellaSpesa::rimuoviOggetto(const std::string& nome) {
     oggetti.erase(std::remove_if(oggetti.begin(), oggetti.end(),
@@ -48,11 +49,11 @@ const std::vector<Oggetto>& ListaDellaSpesa::getOggetti() const {
     return oggetti;
 }
 
-void ListaDellaSpesa::aggiungiObserver(Observer* obs) {
+void ListaDellaSpesa::aggiungiObserver(std::shared_ptr<Observer> obs) {
     observers.push_back(obs);
 }
 
-void ListaDellaSpesa::rimuoviObserver(Observer* obs) {
+void ListaDellaSpesa::rimuoviObserver(std::shared_ptr<Observer> obs) {
     observers.erase(std::remove(observers.begin(), observers.end(), obs), observers.end());
 }
 
@@ -61,7 +62,6 @@ void ListaDellaSpesa::notificaObservers(const std::string& messaggio) {
         obs->aggiorna(messaggio);
     }
 }
-
 
 void ListaDellaSpesa::salvaSuFile(const std::string& filename) const {
     json j_array = json::array();

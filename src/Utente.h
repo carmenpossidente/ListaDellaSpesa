@@ -1,4 +1,3 @@
-
 #ifndef LISTA_SPESA_UTENTE_H
 #define LISTA_SPESA_UTENTE_H
 
@@ -23,17 +22,15 @@ public:
     // Gestione liste
     void creaLista(const std::string& nomeLista);
     void condividiLista(const std::string& nomeLista, Utente* altroUtente);
-    void aggiungiListaCondivisa(std::shared_ptr<ListaDellaSpesa> lista) {
-        listeCondivise.push_back(lista);
-    }
+    void aggiungiListaCondivisa(std::shared_ptr<ListaDellaSpesa> lista);
+
     // Getter
-    std::string getUsername() const { return username; }
+    std::string getUsername() const;
     std::vector<std::shared_ptr<ListaDellaSpesa>> getListePersonali() const;
     std::vector<std::shared_ptr<ListaDellaSpesa>> getListeCondivise() const;
 
     // Cerca lista per nome
     std::shared_ptr<ListaDellaSpesa> getListaPerNome(const std::string& nome);
-
 };
 
 #endif

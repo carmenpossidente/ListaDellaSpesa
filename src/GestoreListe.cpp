@@ -36,7 +36,13 @@ void GestoreListe::creaListaPerUtenteCorrente(const std::string& nomeLista) {
 }
 
 void GestoreListe::condividiListaUtenteCorrente(const std::string& nomeLista, const std::string& altroUtente) {
-    // Implementazione placeholder
-    // Qui dovresti trovare l'altro utente e condividere la lista
+    if (!utenteCorrente) return;
+
+    auto lista = utenteCorrente->getListaPerNome(nomeLista);
+    auto altroUtentePtr = getUtente(altroUtente);
+
+    if (lista && altroUtentePtr) {
+        utenteCorrente->condividiLista(nomeLista, altroUtentePtr.get());
+    }
 }
 

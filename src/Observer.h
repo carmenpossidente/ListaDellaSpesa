@@ -3,7 +3,7 @@
 
 #include <vector>
 #include <string>
-#include "Oggetto.h"
+#include <memory>
 
 class Observer {
 public:
@@ -14,8 +14,8 @@ public:
 class Observable {
 public:
     virtual ~Observable() = default;
-    virtual void aggiungiObserver(Observer* observer) = 0;
-    virtual void rimuoviObserver(Observer* observer) = 0;
+    virtual void aggiungiObserver(std::shared_ptr<Observer> observer) = 0;
+    virtual void rimuoviObserver(std::shared_ptr<Observer> observer) = 0;
     virtual void notificaObservers(const std::string& messaggio) = 0;
 };
 

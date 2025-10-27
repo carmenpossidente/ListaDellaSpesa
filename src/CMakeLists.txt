@@ -9,13 +9,10 @@ add_library(lista_spesa_lib
         Utente.h
         GestoreListe.cpp
         GestoreListe.h
-        main_gui.cpp
+        CLI.cpp
+        CLI.h
 )
 
 # Includi i percorsi necessari (sia per la libreria che per nlohmann_json)
-target_include_directories(lista_spesa_lib
-        PUBLIC
-        ${CMAKE_CURRENT_SOURCE_DIR}
-        ${CMAKE_SOURCE_DIR}/external
-)
+#target_include_directories(lista_spesa_lib PUBLIC ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_SOURCE_DIR}/external)
 
