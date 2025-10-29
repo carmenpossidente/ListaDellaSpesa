@@ -20,7 +20,7 @@ public:
     std::shared_ptr<Utente> getUtenteCorrente() const;
     std::shared_ptr<Utente> getUtente(const std::string& username);
 
-    void creaListaPerUtenteCorrente(const std::string& nomeLista);
+    std::shared_ptr<ListaDellaSpesa> creaListaPerUtenteCorrente(const std::string& nomeLista);
     void condividiListaUtenteCorrente(const std::string& nomeLista, const std::string& altroUtente);
 };
 

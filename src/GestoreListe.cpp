@@ -1,3 +1,4 @@
+#include <iostream>
 #include "GestoreListe.h"
 
 GestoreListe::GestoreListe() {}
@@ -29,20 +30,38 @@ void GestoreListe::logout() {
     utenteCorrente = nullptr;
 }
 
-void GestoreListe::creaListaPerUtenteCorrente(const std::string& nomeLista) {
+std::shared_ptr<ListaDellaSpesa> GestoreListe::creaListaPerUtenteCorrente(const std::string& nomeLista) {
     if (utenteCorrente) {
-        utenteCorrente->creaLista(nomeLista);
+        return utenteCorrente->creaLista(nomeLista);
     }
+    return nullptr;
 }
 
 void GestoreListe::condividiListaUtenteCorrente(const std::string& nomeLista, const std::string& altroUtente) {
-    if (!utenteCorrente) return;
+    if (!utenteCorrente) {
+        std::cout << "[ERRORE] Nessun utente loggato" << std::endl;
+        return;
+    }
 
+    // Cerca la lista nelle liste personali dell'utente corrente
     auto lista = utenteCorrente->getListaPerNome(nomeLista);
+
+    // Ottieni il puntatore all'altro utente
     auto altroUtentePtr = getUtente(altroUtente);
 
     if (lista && altroUtentePtr) {
-        utenteCorrente->condividiLista(nomeLista, altroUtentePtr.get());
+        // Condividi la lista
+        utenteCorrente->condividiLista(nomeLista, altroUtentePtr);
+
+        std::cout << "[DEBUG] GestoreListe: condivisione eseguita" << std::endl;
+    } else {
+        if (!lista) {
+            std::cout << "[ERRORE] Lista '" << nomeLista << "' non trovata" << std::endl;
+        }
+        if (!altroUtentePtr) {
+            std::cout << "[ERRORE] Utente '" << altroUtente << "' non trovato" << std::endl;
+        }
     }
 }
+
 

@@ -3,6 +3,7 @@
 #include "../external/nlohmann/json.hpp"
 #include <algorithm>
 #include <fstream>
+#include <iostream>
 
 using json = nlohmann::json;
 
@@ -10,8 +11,11 @@ ListaDellaSpesa::ListaDellaSpesa(const std::string& nome, const std::string& pro
         : nomeLista(nome), proprietario(proprietario) {}
 
 void ListaDellaSpesa::setNome(const std::string& nome) { nomeLista = nome; }
+
 std::string ListaDellaSpesa::getNome() const { return nomeLista; }
+
 void ListaDellaSpesa::setProprietario(const std::string& prop) { proprietario = prop; }
+
 std::string ListaDellaSpesa::getProprietario() const { return proprietario; }
 
 void ListaDellaSpesa::aggiungiOggetto(const Oggetto &o) {
@@ -54,8 +58,15 @@ void ListaDellaSpesa::aggiungiObserver(std::shared_ptr<Observer> obs) {
 }
 
 void ListaDellaSpesa::rimuoviObserver(std::shared_ptr<Observer> obs) {
-    observers.erase(std::remove(observers.begin(), observers.end(), obs), observers.end());
+    auto it = std::find_if(observers.begin(), observers.end(),
+                           [&](const std::shared_ptr<Observer>& o) { return o == obs; });
+    if (it != observers.end()) {
+        observers.erase(it);
+    } else {
+        std::cerr << "Observer non trovato.\n";
+    }
 }
+
 
 void ListaDellaSpesa::notificaObservers(const std::string& messaggio) {
     for (auto& obs : observers) {
@@ -124,7 +135,7 @@ int ListaDellaSpesa::getQuantitaDaAcquistare() const {
     int sum = 0;
     for (const auto& o : oggetti) {
         if (!o.isAcquistato()) {
-            sum += o.getQuantita();
+            sum++;
         }
     }
     return sum;

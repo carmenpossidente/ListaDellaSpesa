@@ -20,8 +20,8 @@ public:
     void aggiorna(const std::string& messaggio) override;
 
     // Gestione liste
-    void creaLista(const std::string& nomeLista);
-    void condividiLista(const std::string& nomeLista, Utente* altroUtente);
+    std::shared_ptr<ListaDellaSpesa> creaLista(const std::string& nomeLista);
+    void condividiLista(const std::string& nomeLista, std::shared_ptr<Utente> altroUtente);
     void aggiungiListaCondivisa(std::shared_ptr<ListaDellaSpesa> lista);
 
     // Getter

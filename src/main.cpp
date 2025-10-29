@@ -1,7 +1,9 @@
 #include <iostream>
+#include <windows.h>
 #include "CLI.h"
 
 int main() {
+    SetConsoleOutputCP(CP_UTF8);
     try {
         CLI cli;
         cli.avvia();
@@ -11,3 +13,4 @@ int main() {
     }
     return 0;
 }
+
