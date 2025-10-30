@@ -4,7 +4,6 @@
 #include <iomanip>
 #include <limits>
 #include <algorithm>
-#include <windows.h>
 
 CLI::CLI() : running(false) {}
 
@@ -24,13 +23,8 @@ void CLI::termina() {
 
 // Utility
 void CLI::clearScreen() {
-#ifdef _WIN32
-    system("cls");
-    std::cout.flush();  // forza il flush del buffer
-    Sleep(50);          // piccola pausa (50ms) per sincronizzare l'output
-#else
-    system("clear");
-#endif
+    for (int i = 0; i < 10; ++i) std::cout << '\n';
+    std::cout.flush();
 }
 
 void CLI::pausa() {
@@ -115,11 +109,11 @@ void CLI::stampaLista(std::shared_ptr<ListaDellaSpesa> lista) {
     }
 
     std::cout << "└─────────────────────────────────────────────────────────┘\n";
-    int daAcquistare = lista->getQuantitaDaAcquistare();
-    int totali = oggetti.size();
+    int quantitaDaAcquistare = lista->getQuantitaDaAcquistare();
+    int tipiOggetti = static_cast<int>(oggetti.size());
 
-    std::cout << "\n Totale oggetti: " << totali
-              << " | Da acquistare: " << daAcquistare << "\n";
+    std::cout << "\n Tipi di oggetti: " << tipiOggetti
+              << " | Quantità da acquistare: " << quantitaDaAcquistare << "\n";
 }
 
 // Menu Principale
@@ -317,11 +311,15 @@ void CLI::visualizzaListe() {
         std::cout << "────────────────────────────────────────\n";
         for (size_t i = 0; i < listePersonali.size(); ++i) {
             auto lista = listePersonali[i];
-            int numOggetti = lista->getOggetti().size();
+            const auto& items = lista->getOggetti();
+            int numOggetti = static_cast<int>(items.size());
             int daAcquistare = lista->getQuantitaDaAcquistare();
+            int quantitaTotale = 0;
+            for (const auto& o : items) quantitaTotale += o.getQuantita();
 
             std::cout << "  " << (i + 1) << ". " << lista->getNome()
-                      << " (" << numOggetti << " oggetti, "
+                      << " (" << numOggetti << " tipi, "
+                      << quantitaTotale << " totali, "
                       << daAcquistare << " da acquistare)\n";
         }
         std::cout << "\n";
@@ -332,11 +330,17 @@ void CLI::visualizzaListe() {
         std::cout << "────────────────────────────────────────\n";
         for (size_t i = 0; i < listeCondivise.size(); ++i) {
             auto lista = listeCondivise[i];
-            int numOggetti = lista->getOggetti().size();
+            const auto& items = lista->getOggetti();
+            int numOggetti = static_cast<int>(items.size());
+            int daAcquistare = lista->getQuantitaDaAcquistare();
+            int quantitaTotale = 0;
+            for (const auto& o : items) quantitaTotale += o.getQuantita();
 
             std::cout << "  " << (i + 1) << ". " << lista->getNome()
-                      << " (di " << lista->getProprietario()
-                      << ", " << numOggetti << " oggetti)\n";
+                      << " (di " << lista->getProprietario() << ") "
+                      << "(" << numOggetti << " tipi, "
+                      << quantitaTotale << " totali, "
+                      << daAcquistare << " da acquistare)\n";
         }
     }
 
@@ -555,7 +559,6 @@ void CLI::aggiungiOggetto(std::shared_ptr<ListaDellaSpesa> lista) {
         std::cout << "\nOggetto aggiunto con successo!\n";
 
         // Mostra se è stato incrementato o aggiunto
-        bool esiste = false;
         for (const auto& obj : lista->getOggetti()) {
             if (obj.getNome() == nome && obj.getCategoria() == categoria) {
                 if (obj.getQuantita() > quantita) {
@@ -595,7 +598,7 @@ void CLI::rimuoviOggetto(std::shared_ptr<ListaDellaSpesa> lista) {
 
     std::cout << "\n";
     int scelta = leggiIntero("Seleziona oggetto da rimuovere (0 per annullare): ",
-                             0, oggetti.size());
+                             0, static_cast<int>(oggetti.size()));
 
     if (scelta == 0) return;
 
@@ -650,7 +653,7 @@ void CLI::marcaAcquistato(std::shared_ptr<ListaDellaSpesa> lista) {
 
     std::cout << "\n";
     int scelta = leggiIntero("Seleziona oggetto (0 per annullare): ",
-                             0, indiciNonAcquistati.size());
+                             0, static_cast<int>(indiciNonAcquistati.size()));
 
     if (scelta == 0) return;
 
@@ -690,7 +693,7 @@ void CLI::filtraPerCategoria(std::shared_ptr<ListaDellaSpesa> lista) {
 
     std::cout << "\n";
     int scelta = leggiIntero("Seleziona categoria (0 per annullare): ",
-                             0, categorie.size());
+                             0, static_cast<int>(categorie.size()));
 
     if (scelta == 0) return;
 
@@ -720,8 +723,6 @@ void CLI::mostraStatistiche(std::shared_ptr<ListaDellaSpesa> lista) {
         pausa();
         return;
     }
-
-    bool observerTrovato = false;
 
     std::cout << "STATISTICHE GENERALI:\n";
     std::cout << "────────────────────────────────────────\n";
