@@ -76,10 +76,9 @@ ListaDellaSpesa/
 
 ## Descrizione delle Classi
 ### Observer
-    - Interfaccia con un solo metodo 
+- Interfaccia con un solo metodo: 
     aggiorna(std::string messaggio)
-    - Implementata da 
-    ContatoreOggetti
+- Implementata da ContatoreOggetti
 
 ### Observable
 - Interfaccia con metodi per gestione observer:
