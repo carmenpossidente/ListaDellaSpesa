@@ -23,6 +23,11 @@ add_executable(test_gestore test_gestore.cpp)
 target_link_libraries(test_gestore gtest gtest_main lista_spesa_lib)
 target_include_directories(test_gestore PRIVATE ${CMAKE_SOURCE_DIR}/src)
 
+# Test per Observer
+add_executable(test_observer test_observer.cpp)
+target_link_libraries(test_observer gtest gtest_main lista_spesa_lib)
+target_include_directories(test_observer PRIVATE ${CMAKE_SOURCE_DIR}/src)
+
 # Aggiungi tutti i test
 include(GoogleTest)
 gtest_discover_tests(test_oggetto)
@@ -30,3 +35,4 @@ gtest_discover_tests(test_contatore)
 gtest_discover_tests(test_listadellaspesa)
 gtest_discover_tests(test_utente)
 gtest_discover_tests(test_gestore)
+gtest_discover_tests(test_observer)

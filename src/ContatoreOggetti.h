@@ -5,17 +5,29 @@
 #include <cstddef>
 #include <string>
 #include <vector>
+#include <map>
 
 class ContatoreOggetti : public Observer {
 private:
-    std::size_t numeroOggetti;
+    int numeroDaAcquistare;
+    std::map<std::string, bool> oggettiDaAcquistare;
 
 public:
     ContatoreOggetti();
 
     void aggiorna(const std::string& messaggio) override;
 
-    std::size_t getNumeroOggetti() const;
+    // Getter per il numero di oggetti da acquistare
+    int getNumeroDaAcquistare() const;
+
+    // Getter per la lista degli oggetti da acquistare
+    std::vector<std::string> getListaOggettiDaAcquistare() const;
+
+    // Getter per tutti gli oggetti con il loro stato
+    std::map<std::string, bool> getOggettiConStato() const;
+
+    // Verifica se un oggetto è da acquistare
+    bool isDaAcquistare(const std::string& nome) const;
 };
 
 #endif

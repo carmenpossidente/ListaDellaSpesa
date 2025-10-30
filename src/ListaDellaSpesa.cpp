@@ -1,5 +1,4 @@
 #include "ListaDellaSpesa.h"
-#include "ContatoreOggetti.h"
 #include "../external/nlohmann/json.hpp"
 #include <algorithm>
 #include <fstream>
@@ -22,16 +21,23 @@ void ListaDellaSpesa::aggiungiOggetto(const Oggetto &o) {
     // Controlla se l'oggetto esiste già
     for (auto &oggetto : oggetti) {
         if (oggetto.getNome() == o.getNome() && oggetto.getCategoria() == o.getCategoria()) {
-            oggetto.setQuantita(oggetto.getQuantita() + o.getQuantita());
-            notificaObservers("Oggetto aggiornato: " + o.getNome() + " (nuova quantità: " + std::to_string(oggetto.getQuantita()) + ")");
+            int vecchiaQuantita = oggetto.getQuantita();
+            oggetto.setQuantita(vecchiaQuantita + o.getQuantita());
+
+            // Notifica AGGIORNAMENTO (quantità modificata, ma oggetto già esistente)
+            notificaObservers("Oggetto aggiornato: " + o.getNome() +
+                              " (nuova quantità: " + std::to_string(oggetto.getQuantita()) + ")");
+
             if (!defaultFilename.empty()) salvaSuFile(defaultFilename);
             return;
         }
     }
-
-    // Se non esiste, aggiungi nuovo oggetto
+    // Se non esiste, aggiungi nuovo oggetto (sempre come NON acquistato)
     oggetti.push_back(o);
+
+    // Notifica nuovo oggetto da acquistare
     notificaObservers("Oggetto aggiunto: " + o.getNome());
+
     if (!defaultFilename.empty()) salvaSuFile(defaultFilename);
 }
 
@@ -40,10 +46,33 @@ void ListaDellaSpesa::rimuoviOggetto(const std::string& nome) {
                                  [&nome](const Oggetto& o) {
                                      return o.getNome() == nome;
                                  }), oggetti.end());
+
+    // Notifica rimozione
     notificaObservers("Oggetto rimosso: " + nome);
+
     if (!defaultFilename.empty()) salvaSuFile(defaultFilename);
 }
 
+void ListaDellaSpesa::marcaAcquistato(const std::string& nome, bool acquistato) {
+    for (auto& obj : oggetti) {
+        if (obj.getNome() == nome) {
+            bool vecchioStato = obj.isAcquistato();
+            obj.setAcquistato(acquistato);
+
+            // Notifica solo se c'è un cambio di stato
+            if (vecchioStato != acquistato) {
+                if (acquistato) {
+                    notificaObservers("Oggetto marcato_acquistato: " + nome);
+                } else {
+                    notificaObservers("Oggetto marcato_non_acquistato: " + nome);
+                }
+            }
+
+            if (!defaultFilename.empty()) salvaSuFile(defaultFilename);
+            break;
+        }
+    }
+}
 
 void ListaDellaSpesa::setFilename(const std::string& filename) {
     defaultFilename = filename;
@@ -98,19 +127,33 @@ void ListaDellaSpesa::caricaDaFile(const std::string& filename) {
 
     oggetti.clear();
 
+    // Prima notifica il reset
+    notificaObservers("Lista caricata da file");
+
+    // Poi carica gli oggetti e notifica uno per uno
     for (const auto& j_ogg : j_array) {
         Oggetto o(
                 j_ogg["nome"].get<std::string>(),
                 j_ogg["categoria"].get<std::string>(),
                 j_ogg["quantita"].get<int>()
         );
-        if (j_ogg.contains("acquistato")) {
-            o.setAcquistato(j_ogg["acquistato"].get<bool>());
-        }
-        oggetti.push_back(o);
-    }
 
-    notificaObservers("Lista caricata da file");  // notifica dopo caricamento
+        bool acquistato = false;
+        if (j_ogg.contains("acquistato")) {
+        acquistato = j_ogg["acquistato"].get<bool>();
+        o.setAcquistato(acquistato);
+        }
+
+        oggetti.push_back(o);
+
+        // Notifica l'aggiunta con lo stato corretto
+        if (acquistato) {
+            notificaObservers("Oggetto aggiunto: " + o.getNome());
+            notificaObservers("Oggetto marcato_acquistato: " + o.getNome());
+        } else {
+            notificaObservers("Oggetto aggiunto: " + o.getNome());
+        }
+    }
 }
 
 std::vector<Oggetto> ListaDellaSpesa::filtraPerCategoria(const std::string& cat) const {
@@ -135,7 +178,7 @@ int ListaDellaSpesa::getQuantitaDaAcquistare() const {
     int sum = 0;
     for (const auto& o : oggetti) {
         if (!o.isAcquistato()) {
-            sum++;
+            sum += o.getQuantita();
         }
     }
     return sum;

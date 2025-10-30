@@ -654,16 +654,13 @@ void CLI::marcaAcquistato(std::shared_ptr<ListaDellaSpesa> lista) {
 
     if (scelta == 0) return;
 
-    // Modifica l'oggetto originale nella lista
+    // Usa il metodo marcaAcquistato di ListaDellaSpesa
     int indiceOriginale = indiciNonAcquistati[scelta - 1];
-    auto& oggettiRef = const_cast<std::vector<Oggetto>&>(lista->getOggetti());
-    oggettiRef[indiceOriginale].setAcquistato(true);
+    std::string nomeOggetto = oggetti[indiceOriginale].getNome();
+
+    lista->marcaAcquistato(nomeOggetto, true);  // Notifica l'Observer
 
     std::cout << "\nOggetto marcato come acquistato!\n";
-
-    // Salva automaticamente se c'è un filename
-    lista->salvaSuFile(lista->getNome() + ".json");
-
     pausa();
 }
 
@@ -714,7 +711,7 @@ void CLI::mostraStatistiche(std::shared_ptr<ListaDellaSpesa> lista) {
     clearScreen();
     std::cout << "\n=== STATISTICHE LISTA ===\n\n";
     std::cout << "Lista: " << lista->getNome() << "\n";
-    std::cout << "════════════════════════════════════════\n\n";
+    std::cout << "══════════════════════════════════════\n\n";
 
     const auto& oggetti = lista->getOggetti();
 
@@ -723,6 +720,11 @@ void CLI::mostraStatistiche(std::shared_ptr<ListaDellaSpesa> lista) {
         pausa();
         return;
     }
+
+    bool observerTrovato = false;
+
+    std::cout << "STATISTICHE GENERALI:\n";
+    std::cout << "────────────────────────────────────────\n";
 
     // Statistiche generali
     int totaleOggetti = 0;
@@ -741,8 +743,26 @@ void CLI::mostraStatistiche(std::shared_ptr<ListaDellaSpesa> lista) {
     std::cout << "Totale tipi di oggetti: " << totaleOggetti << "\n";
     std::cout << "Quantità totale: " << quantitaTotale << "\n";
     std::cout << "Oggetti acquistati: " << oggettiAcquistati << "\n";
-    std::cout << "Oggetti da acquistare: " << (totaleOggetti - oggettiAcquistati) << "\n";
+    std::cout << "🛒 Oggetti DA ACQUISTARE: " << (totaleOggetti - oggettiAcquistati) << "\n";
     std::cout << "Quantità da acquistare: " << quantitaDaAcquistare << "\n\n";
+
+    // Lista oggetti da acquistare
+    std::cout << "OGGETTI DA ACQUISTARE:\n";
+    std::cout << "────────────────────────────────────────\n";
+    bool haOggettiDaAcquistare = false;
+    for (const auto& obj : oggetti) {
+        if (!obj.isAcquistato()) {
+            std::cout << "  • " << obj.getNome()
+                      << " (" << obj.getCategoria() << ") - Qta: "
+                      << obj.getQuantita() << "\n";
+            haOggettiDaAcquistare = true;
+        }
+    }
+
+    if (!haOggettiDaAcquistare) {
+        std::cout << "  ✓ Hai acquistato tutto!\n";
+    }
+    std::cout << "\n";
 
     // Percentuale completamento
     float percentuale = totaleOggetti > 0
@@ -753,7 +773,7 @@ void CLI::mostraStatistiche(std::shared_ptr<ListaDellaSpesa> lista) {
               << percentuale << "%\n";
 
     // Barra di progresso
-    int barraPiena = static_cast<int>(percentuale / 5);  // 20 blocchi totali
+    int barraPiena = static_cast<int>(percentuale / 5);
     std::cout << "[";
     for (int i = 0; i < 20; ++i) {
         if (i < barraPiena) std::cout << "█";
@@ -771,9 +791,9 @@ void CLI::mostraStatistiche(std::shared_ptr<ListaDellaSpesa> lista) {
         std::cout << "  • " << std::left << std::setw(20) << cat
                   << ": " << count << " oggetti\n";
     }
+
     pausa();
 }
-
 // Gestione File
 void CLI::salvaLista(std::shared_ptr<ListaDellaSpesa> lista) {
     clearScreen();

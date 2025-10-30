@@ -31,6 +31,7 @@ public:
 
     void aggiungiOggetto(const Oggetto& o);
     void rimuoviOggetto(const std::string& nome);
+    void marcaAcquistato(const std::string& nome, bool acquistato = true);  // NUOVO METODO
     void setFilename(const std::string& filename);
     const std::vector<Oggetto>& getOggetti() const;
     void salvaSuFile(const std::string& filename) const;
