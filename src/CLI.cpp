@@ -65,9 +65,6 @@ void CLI::mostraBanner() {
     std::cout << "║                                           ║\n";
     std::cout << "║             LISTA DELLA SPESA             ║\n";
     std::cout << "║                                           ║\n";
-    std::cout << "║       Gestisci le tue liste in modo       ║\n";
-    std::cout << "║           semplice ed efficace!           ║\n";
-    std::cout << "║                                           ║\n";
     std::cout << "╚═══════════════════════════════════════════╝\n";
     std::cout << "\n";
 }

@@ -45,6 +45,7 @@ std::shared_ptr<Utente> utente;
 
 ### Struttura del Progetto
 
+```
 ListaDellaSpesa/
 ├── 📁 src/
 │   ├── 📄 main.cpp                  # Main 
@@ -72,6 +73,7 @@ ListaDellaSpesa/
 ├── 📁 cmake-build-debug/  
 ├── 📄 README.md
 └── 📄 CMakeLists.txt
+```
 
 
 ## Descrizione delle Classi
