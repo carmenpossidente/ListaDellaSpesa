@@ -16,6 +16,8 @@ public:
     virtual ~Observable() = default;
     virtual void aggiungiObserver(std::shared_ptr<Observer> observer) = 0;
     virtual void rimuoviObserver(std::shared_ptr<Observer> observer) = 0;
+
+protected:
     virtual void notificaObservers(const std::string& messaggio) = 0;
 };
 

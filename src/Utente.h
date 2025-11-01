@@ -23,6 +23,8 @@ public:
     std::shared_ptr<ListaDellaSpesa> creaLista(const std::string& nomeLista);
     void condividiLista(const std::string& nomeLista, std::shared_ptr<Utente> altroUtente);
     void aggiungiListaCondivisa(std::shared_ptr<ListaDellaSpesa> lista);
+    void eliminaLista(const std::string& nomeLista);
+    void rimuoviListaCondivisa(std::shared_ptr<ListaDellaSpesa> lista);
 
     // Getter
     std::string getUsername() const;

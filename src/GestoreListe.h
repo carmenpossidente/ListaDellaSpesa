@@ -22,6 +22,7 @@ public:
 
     std::shared_ptr<ListaDellaSpesa> creaListaPerUtenteCorrente(const std::string& nomeLista);
     void condividiListaUtenteCorrente(const std::string& nomeLista, const std::string& altroUtente);
+    void annullaCondivisioneUtenteCorrente(const std::string& nomeLista, const std::string& altroUtente);
 };
 
 #endif

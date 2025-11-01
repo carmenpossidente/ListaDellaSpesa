@@ -3,6 +3,30 @@
 
 GestoreListe::GestoreListe() {}
 
+void GestoreListe::annullaCondivisioneUtenteCorrente(const std::string& nomeLista, const std::string& altroUtente) {
+    if (!utenteCorrente) {
+        std::cout << "[ERRORE] Nessun utente loggato" << std::endl;
+        return;
+    }
+
+    auto lista = utenteCorrente->getListaPerNome(nomeLista);
+    auto altroUtentePtr = getUtente(altroUtente);
+
+    if (lista && altroUtentePtr) {
+        // Rimuovi l'altro utente come observer e rimuovi la lista dalle sue condivise
+        lista->rimuoviObserver(altroUtentePtr);
+        altroUtentePtr->rimuoviListaCondivisa(lista);
+        std::cout << "[DEBUG] Condivisione annullata" << std::endl;
+    } else {
+        if (!lista) {
+            std::cout << "[ERRORE] Lista '" << nomeLista << "' non trovata" << std::endl;
+        }
+        if (!altroUtentePtr) {
+            std::cout << "[ERRORE] Utente '" << altroUtente << "' non trovato" << std::endl;
+        }
+    }
+}
+
 void GestoreListe::registraUtente(const std::string& username) {
     if (utenti.find(username) == utenti.end()) {
         utenti[username] = std::make_shared<Utente>(username);

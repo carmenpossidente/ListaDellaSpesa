@@ -241,19 +241,66 @@ void CLI::menuListe() {
         std::cout << "║ 2. Visualizza liste                ║\n";
         std::cout << "║ 3. Seleziona e modifica lista      ║\n";
         std::cout << "║ 4. Condividi lista                 ║\n";
+        std::cout << "║ 5. Elimina lista                   ║\n";
+        std::cout << "║ 6. Annulla condivisione            ║\n";
         std::cout << "║ 0. Indietro                        ║\n";
         std::cout << "╚════════════════════════════════════╝\n";
 
-        int scelta = leggiIntero("Scegli un'opzione: ", 0, 4);
+        int scelta = leggiIntero("Scegli un'opzione: ", 0, 6);
 
         switch (scelta) {
             case 1: creaLista(); break;
             case 2: visualizzaListe(); break;
             case 3: selezionaLista(); break;
             case 4: condividiLista(); break;
+            case 5: eliminaLista(); break;
+            case 6: annullaCondivisioneLista(); break;
             case 0: return;
         }
     }
+}
+
+void CLI::annullaCondivisioneLista() {
+    clearScreen();
+    auto utente = gestore.getUtenteCorrente();
+    if (!utente) return;
+
+    auto liste = utente->getListePersonali();
+    if (liste.empty()) {
+        std::cout << "\nNon hai liste personali da gestire.\n";
+        pausa();
+        return;
+    }
+
+    std::cout << "\n=== ANNULLA CONDIVISIONE ===\n\n";
+    for (size_t i = 0; i < liste.size(); ++i) {
+        std::cout << "  " << (i + 1) << ". " << liste[i]->getNome() << "\n";
+    }
+    std::cout << "  0. Annulla\n\n";
+
+    int scelta = leggiIntero("Seleziona lista: ", 0, static_cast<int>(liste.size()));
+    if (scelta == 0) return;
+
+    std::string nomeLista = liste[scelta - 1]->getNome();
+    std::string altroUtente = leggiStringa("Username con cui era condivisa: ");
+    if (altroUtente.empty()) {
+        std::cout << "\n[X] Username non valido.\n";
+        pausa();
+        return;
+    }
+
+    std::cout << "\nConfermi di annullare la condivisione di '" << nomeLista
+              << "' con " << altroUtente << "? (s/n): ";
+    std::string conferma;
+    std::getline(std::cin, conferma);
+    if (conferma != "s" && conferma != "S") {
+        std::cout << "Operazione annullata.\n";
+        pausa();
+        return;
+    }
+
+    gestore.annullaCondivisioneUtenteCorrente(nomeLista, altroUtente);
+    pausa();
 }
 
 void CLI::creaLista() {
@@ -530,6 +577,41 @@ void CLI::menuOggetti(std::shared_ptr<ListaDellaSpesa> lista) {
             case 0: return;
         }
     }
+}
+
+void CLI::eliminaLista() {
+    clearScreen();
+    auto utente = gestore.getUtenteCorrente();
+    if (!utente) return;
+
+    auto liste = utente->getListePersonali();
+    if (liste.empty()) {
+        std::cout << "\nNon hai liste personali da eliminare.\n";
+        pausa();
+        return;
+    }
+
+    std::cout << "\n=== ELIMINA LISTA ===\n\n";
+    for (size_t i = 0; i < liste.size(); ++i) {
+        std::cout << "  " << (i + 1) << ". " << liste[i]->getNome() << "\n";
+    }
+    std::cout << "  0. Annulla\n\n";
+
+    int scelta = leggiIntero("Seleziona lista da eliminare: ", 0, static_cast<int>(liste.size()));
+    if (scelta == 0) return;
+
+    std::string nomeLista = liste[scelta - 1]->getNome();
+    std::cout << "\nConfermi l'eliminazione di '" << nomeLista << "'? (s/n): ";
+    std::string conferma;
+    std::getline(std::cin, conferma);
+    if (conferma != "s" && conferma != "S") {
+        std::cout << "Operazione annullata.\n";
+        pausa();
+        return;
+    }
+
+    utente->eliminaLista(nomeLista);
+    pausa();
 }
 
 void CLI::aggiungiOggetto(std::shared_ptr<ListaDellaSpesa> lista) {

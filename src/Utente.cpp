@@ -44,9 +44,29 @@ void Utente::condividiLista(const std::string& nomeLista, std::shared_ptr<Utente
     }
 }
 
-
 void Utente::aggiungiListaCondivisa(std::shared_ptr<ListaDellaSpesa> lista) {
     listeCondivise.push_back(lista);
+}
+
+void Utente::rimuoviListaCondivisa(std::shared_ptr<ListaDellaSpesa> lista) {
+    for (auto it = listeCondivise.begin(); it != listeCondivise.end(); ++it) {
+        if (*it == lista) {
+            listeCondivise.erase(it);
+            std::cout << "[DEBUG] Lista condivisa rimossa da " << username << std::endl;
+            return;
+        }
+    }
+}
+
+void Utente::eliminaLista(const std::string& nomeLista) {
+    for (auto it = listePersonali.begin(); it != listePersonali.end(); ++it) {
+        if ((*it)->getNome() == nomeLista) {
+            listePersonali.erase(it);
+            std::cout << "Lista '" << nomeLista << "' eliminata per " << username << std::endl;
+            return;
+        }
+    }
+    std::cout << "[ERRORE] Lista '" << nomeLista << "' non trovata" << std::endl;
 }
 
 std::string Utente::getUsername() const {
