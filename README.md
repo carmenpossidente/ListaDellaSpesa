@@ -6,7 +6,7 @@ Applicazione C++ per la gestione di liste della spesa, con supporto a più liste
 
 - **Modello Utente e Liste multiple**: Un utente può avere più liste e più utenti possono condividere le stesse liste
 - **Notifiche (Observer in-process)**: Le liste notificano gli observer interni ad ogni modifica
-- **Persistenza Dati**: Salvataggio e caricamento liste in JSON (Utenti e condivisioni esistono invece solo in memoria durante la sessione)
+- **Persistenza Dati**: Salvataggio liste in JSON (Utenti e condivisioni esistono invece solo in memoria durante la sessione)
 - **Statistiche Lista**: Visualizza progress, categorie e metriche dettagliate
 - **Tracking Acquisti**: Marca gli oggetti come acquistati
 - **CLI Intuitiva**: Interfaccia a riga di comando user-friendly
@@ -91,5 +91,5 @@ Menu Principale → Gestione Liste → Gestione Oggetti
     ↓               ↓                  ↓
 Login/Logout   Crea/Seleziona    Aggiungi/Rimuovi
 Registrazione  Condividi/Elimina Marca acquistato
-               Salva/Carica      Statistiche/Filtri
+               Salva             Statistiche/Filtri
 ```

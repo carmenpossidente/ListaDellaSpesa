@@ -73,7 +73,7 @@ void CLI::stampaOggetto(const Oggetto& obj, int indice) {
     std::cout << "  " << std::setw(2) << indice << ". ";
 
     // Casella: spuntata se acquistato, vuota altrimenti
-    std::string casella = obj.isAcquistato() ? "[✔]" : "[ ]";
+    std::string casella = obj.isAcquistato() ? "[✓]" : "[ ]";
 
     std::cout << casella << " ";
 
@@ -98,7 +98,9 @@ void CLI::stampaLista(std::shared_ptr<ListaDellaSpesa> lista) {
     }
 
     std::cout << "\n┌─────────────────────────────────────────────────────────┐\n";
-    std::cout << "│ Lista: " << std::left << std::setw(47) << lista->getNome() << "  │\n";
+    std::cout << "│ Lista: "
+              << std::left << std::setw(47) << (lista->getNome() + " — Oggetti")
+              << "  │\n";
     std::cout << "├─────────────────────────────────────────────────────────┤\n";
 
     for (size_t i = 0; i < oggetti.size(); ++i) {
@@ -108,8 +110,17 @@ void CLI::stampaLista(std::shared_ptr<ListaDellaSpesa> lista) {
     std::cout << "└─────────────────────────────────────────────────────────┘\n";
     int quantitaDaAcquistare = lista->getQuantitaDaAcquistare();
     int tipiOggetti = static_cast<int>(oggetti.size());
+    int quantitaTotale = 0;
+    int acquistati = 0;
+    for (const auto& o : oggetti) {
+        quantitaTotale += o.getQuantita();
+        if (o.isAcquistato()) acquistati++;
+    }
 
     std::cout << "\n Tipi di oggetti: " << tipiOggetti
+              << " | Quantità totale: " << quantitaTotale
+              << " | Oggetti acquistati: " << acquistati
+              << " | Oggetti da acquistare: "<< (tipiOggetti -acquistati)
               << " | Quantità da acquistare: " << quantitaDaAcquistare << "\n";
 }
 
@@ -192,6 +203,188 @@ void CLI::registrazioneUtente() {
     gestore.registraUtente(username);
     std::cout << "\nUtente '" << username << "' registrato con successo!\n";
     std::cout << "Ora puoi effettuare il login.\n";
+    pausa();
+}
+
+// Menu Oggetti per una lista selezionata
+void CLI::menuOggetti(std::shared_ptr<ListaDellaSpesa> lista) {
+    while (true) {
+        clearScreen();
+        if (!lista) return;
+
+        std::cout << "\n╔════════════════════════════════════╗\n";
+        std::cout << "║    GESTIONE OGGETTI                ║\n";
+        std::cout << "║    Lista: " << std::left << std::setw(24) << lista->getNome() << "║\n";
+        std::cout << "╠════════════════════════════════════╣\n";
+        std::cout << "║ 1. Aggiungi oggetto                ║\n";
+        std::cout << "║ 2. Visualizza oggetti              ║\n";
+        std::cout << "║ 3. Rimuovi oggetto                 ║\n";
+        std::cout << "║ 4. Marca come acquistato           ║\n";
+        std::cout << "║ 5. Filtra per categoria            ║\n";
+        std::cout << "║ 6. Mostra statistiche              ║\n";
+        std::cout << "║ 7. Salva su file                   ║\n";
+        std::cout << "║ 0. Indietro                        ║\n";
+        std::cout << "╚════════════════════════════════════╝\n";
+
+        int scelta = leggiIntero("Scegli un'opzione: ", 0, 7);
+
+        switch (scelta) {
+            case 1: aggiungiOggetto(lista); break;
+            case 2: visualizzaOggetti(lista); break;
+            case 3: rimuoviOggetto(lista); break;
+            case 4: marcaAcquistato(lista); break;
+            case 5: filtraPerCategoria(lista); break;
+            case 6: mostraStatistiche(lista); break;
+            case 7: salvaLista(lista); break;
+            case 0: return;
+        }
+    }
+}
+
+// Visualizza elenco liste personali e condivise
+void CLI::visualizzaListe() {
+    clearScreen();
+    auto utente = gestore.getUtenteCorrente();
+    if (!utente) return;
+
+    auto personali = utente->getListePersonali();
+    auto condivise = utente->getListeCondivise();
+
+    std::cout << "\n=== LE TUE LISTE ===\n\n";
+
+    if (personali.empty() && condivise.empty()) {
+        std::cout << "Non hai liste.\n";
+        pausa();
+        return;
+    }
+
+    if (!personali.empty()) {
+        std::cout << "Personali:\n";
+        for (size_t i = 0; i < personali.size(); ++i) {
+            const auto& l = personali[i];
+            int daAcq = l->getQuantitaDaAcquistare();
+            std::cout << "  - " << l->getNome() << " (da acquistare: " << daAcq << ")\n";
+        }
+        std::cout << "\n";
+    }
+
+    if (!condivise.empty()) {
+        std::cout << "Condivise con te:\n";
+        for (size_t i = 0; i < condivise.size(); ++i) {
+            const auto& l = condivise[i];
+            int daAcq = l->getQuantitaDaAcquistare();
+            std::cout << "  - " << l->getNome() << " (condivisa, da acquistare: " << daAcq << ")\n";
+        }
+    }
+
+    pausa();
+}
+
+// Seleziona una lista (personale o condivisa) e apri il menu oggetti
+void CLI::selezionaLista() {
+    clearScreen();
+    auto utente = gestore.getUtenteCorrente();
+    if (!utente) return;
+
+    std::cout << "\n=== SELEZIONA LISTA ===\n\n";
+
+    auto personali = utente->getListePersonali();
+    auto condivise = utente->getListeCondivise();
+
+    if (personali.empty() && condivise.empty()) {
+        std::cout << "Non hai liste disponibili.\n";
+        pausa();
+        return;
+    }
+
+    std::vector<std::shared_ptr<ListaDellaSpesa>> tutte;
+    tutte.reserve(personali.size() + condivise.size());
+    for (auto& l : personali) tutte.push_back(l);
+    for (auto& l : condivise) tutte.push_back(l);
+
+    std::cout << "Le tue liste:\n";
+    for (size_t i = 0; i < tutte.size(); ++i) {
+        bool isCondivisa = (i >= personali.size());
+        std::cout << "  " << (i + 1) << ". " << tutte[i]->getNome();
+        if (isCondivisa) std::cout << " (condivisa)";
+        std::cout << "\n";
+    }
+    std::cout << "  0. Annulla\n\n";
+
+    int scelta = leggiIntero("Seleziona lista: ", 0, static_cast<int>(tutte.size()));
+    if (scelta == 0) return;
+
+    auto listaSelezionata = tutte[scelta - 1];
+    menuOggetti(listaSelezionata);
+}
+
+// Condividi una lista personale con un altro utente
+void CLI::condividiLista() {
+    clearScreen();
+    auto utente = gestore.getUtenteCorrente();
+    if (!utente) return;
+
+    auto personali = utente->getListePersonali();
+    if (personali.empty()) {
+        std::cout << "\nNon hai liste personali da condividere.\n";
+        pausa();
+        return;
+    }
+
+    std::cout << "\n=== CONDIVIDI LISTA ===\n\n";
+    for (size_t i = 0; i < personali.size(); ++i) {
+        std::cout << "  " << (i + 1) << ". " << personali[i]->getNome() << "\n";
+    }
+    std::cout << "  0. Annulla\n\n";
+
+    int scelta = leggiIntero("Seleziona lista da condividere: ", 0, static_cast<int>(personali.size()));
+    if (scelta == 0) return;
+
+    std::string altroUtente = leggiStringa("Username destinatario: ");
+    if (altroUtente.empty()) {
+        std::cout << "Username non valido.\n";
+        pausa();
+        return;
+    }
+
+    std::string nomeLista = personali[scelta - 1]->getNome();
+    gestore.condividiListaUtenteCorrente(nomeLista, altroUtente);
+    pausa();
+}
+
+// Elimina una lista personale dell'utente corrente
+void CLI::eliminaLista() {
+    clearScreen();
+    auto utente = gestore.getUtenteCorrente();
+    if (!utente) return;
+
+    auto liste = utente->getListePersonali();
+    if (liste.empty()) {
+        std::cout << "\nNon hai liste personali da eliminare.\n";
+        pausa();
+        return;
+    }
+
+    std::cout << "\n=== ELIMINA LISTA ===\n\n";
+    for (size_t i = 0; i < liste.size(); ++i) {
+        std::cout << "  " << (i + 1) << ". " << liste[i]->getNome() << "\n";
+    }
+    std::cout << "  0. Annulla\n\n";
+
+    int scelta = leggiIntero("Seleziona lista da eliminare: ", 0, static_cast<int>(liste.size()));
+    if (scelta == 0) return;
+
+    std::string nomeLista = liste[scelta - 1]->getNome();
+    std::cout << "\nConfermi l'eliminazione di '" << nomeLista << "'? (s/n): ";
+    std::string conferma;
+    std::getline(std::cin, conferma);
+    if (conferma != "s" && conferma != "S") {
+        std::cout << "Operazione annullata.\n";
+        pausa();
+        return;
+    }
+
+    utente->eliminaLista(nomeLista);
     pausa();
 }
 
@@ -315,303 +508,27 @@ void CLI::creaLista() {
         return;
     }
 
-    auto lista = gestore.creaListaPerUtenteCorrente(nomeLista);
+    auto nuovaLista = gestore.creaListaPerUtenteCorrente(nomeLista);
 
-    if (lista) {
+    if (nuovaLista) {
         // Aggiungi un contatore come observer
         auto contatore = std::make_shared<ContatoreOggetti>();
-        lista->aggiungiObserver(contatore);
+        nuovaLista->aggiungiObserver(contatore);
 
-        std::cout << "\nLista '" << nomeLista << "' creata con successo!\n";
+        // Iscrivi l'utente corrente come observer della nuova lista per vedere le notifiche
+        auto utente = gestore.getUtenteCorrente();
+        if (utente) {
+            nuovaLista->aggiungiObserver(utente);
+        }
+
         std::cout << "Ora puoi aggiungere gli oggetti.\n";
 
         pausa();
-        menuOggetti(lista);
+        menuOggetti(nuovaLista);
     } else {
         std::cout << "\nErrore nella creazione della lista.\n";
         pausa();
     }
-}
-
-void CLI::visualizzaListe() {
-    clearScreen();
-    auto utente = gestore.getUtenteCorrente();
-    if (!utente) return;
-
-    std::cout << "\n=== LE TUE LISTE ===\n\n";
-
-    auto listePersonali = utente->getListePersonali();
-    auto listeCondivise = utente->getListeCondivise();
-
-    if (listePersonali.empty() && listeCondivise.empty()) {
-        std::cout << "Non hai ancora creato nessuna lista.\n";
-        std::cout << "Usa l'opzione 'Crea nuova lista' per iniziare!\n";
-        pausa();
-        return;
-    }
-
-    if (!listePersonali.empty()) {
-        std::cout << "Liste Personali:\n";
-        std::cout << "────────────────────────────────────────\n";
-        for (size_t i = 0; i < listePersonali.size(); ++i) {
-            auto lista = listePersonali[i];
-            const auto& items = lista->getOggetti();
-            int numOggetti = static_cast<int>(items.size());
-            int daAcquistare = lista->getQuantitaDaAcquistare();
-            int quantitaTotale = 0;
-            for (const auto& o : items) quantitaTotale += o.getQuantita();
-
-            std::cout << "  " << (i + 1) << ". " << lista->getNome()
-                      << " (" << numOggetti << " tipi, "
-                      << quantitaTotale << " totali, "
-                      << daAcquistare << " da acquistare)\n";
-        }
-        std::cout << "\n";
-    }
-
-    if (!listeCondivise.empty()) {
-        std::cout << "Liste Condivise:\n";
-        std::cout << "────────────────────────────────────────\n";
-        for (size_t i = 0; i < listeCondivise.size(); ++i) {
-            auto lista = listeCondivise[i];
-            const auto& items = lista->getOggetti();
-            int numOggetti = static_cast<int>(items.size());
-            int daAcquistare = lista->getQuantitaDaAcquistare();
-            int quantitaTotale = 0;
-            for (const auto& o : items) quantitaTotale += o.getQuantita();
-
-            std::cout << "  " << (i + 1) << ". " << lista->getNome()
-                      << " (di " << lista->getProprietario() << ") "
-                      << "(" << numOggetti << " tipi, "
-                      << quantitaTotale << " totali, "
-                      << daAcquistare << " da acquistare)\n";
-        }
-    }
-
-    pausa();
-}
-
-void CLI::selezionaLista() {
-    clearScreen();
-    auto utente = gestore.getUtenteCorrente();
-    if (!utente) return;
-
-    std::cout << "\n=== SELEZIONA LISTA ===\n\n";
-
-    auto listePersonali = utente->getListePersonali();
-    auto listeCondivise = utente->getListeCondivise();
-
-    if (listePersonali.empty() && listeCondivise.empty()) {
-        std::cout << "Non hai liste disponibili.\n";
-        pausa();
-        return;
-    }
-
-    std::cout << "Le tue liste:\n";
-    int indice = 1;
-
-    for (size_t i = 0; i < listePersonali.size(); ++i) {
-        std::cout << "  " << indice++ << ". " << listePersonali[i]->getNome() << "\n";
-    }
-
-    for (size_t i = 0; i < listeCondivise.size(); ++i) {
-        std::cout << "  " << indice++ << ". " << listeCondivise[i]->getNome()
-                  << " (condivisa)\n";
-    }
-
-    std::cout << "  0. Annulla\n\n";
-
-    int scelta = leggiIntero("Seleziona lista: ", 0, indice - 1);
-
-    if (scelta == 0) return;
-
-    std::shared_ptr<ListaDellaSpesa> listaSelezionata;
-
-    if (scelta <= static_cast<int>(listePersonali.size())) {
-        listaSelezionata = listePersonali[scelta - 1];
-    } else {
-        listaSelezionata = listeCondivise[scelta - listePersonali.size() - 1];
-    }
-
-    if (listaSelezionata) {
-        menuOggetti(listaSelezionata);
-    }
-}
-
-void CLI::condividiLista() {
-    clearScreen();
-    auto utente = gestore.getUtenteCorrente();
-    if (!utente) return;
-
-    std::cout << "\n=== CONDIVIDI LISTA ===\n\n";
-
-    auto listePersonali = utente->getListePersonali();
-
-    if (listePersonali.empty()) {
-        std::cout << "Non hai liste personali da condividere.\n";
-        pausa();
-        return;
-    }
-
-    // Mostra le liste con più dettagli
-    std::cout << "Le tue liste:\n";
-    std::cout << "----------------------------------------\n";
-    for (size_t i = 0; i < listePersonali.size(); ++i) {
-        auto lista = listePersonali[i];
-        std::cout << "  " << (i + 1) << ". " << lista->getNome()
-                  << " (" << lista->getOggetti().size() << " oggetti)\n";
-    }
-    std::cout << "  0. Annulla\n";
-
-    int scelta = leggiIntero("\nSeleziona lista: ", 0, listePersonali.size());
-
-    if (scelta == 0) {
-        std::cout << "Operazione annullata.\n";
-        pausa();
-        return;
-    }
-
-    std::string nomeLista = listePersonali[scelta - 1]->getNome();
-
-    std::cout << "\nCondivisione lista: " << nomeLista << "\n";
-    std::cout << "----------------------------------------\n";
-
-    std::string altroUtente = leggiStringa("Username con cui condividere: ");
-
-    // Validazione input
-    if (altroUtente.empty()) {
-        std::cout << "\n[X] Username non valido.\n";
-        pausa();
-        return;
-    }
-
-    if (altroUtente == utente->getUsername()) {
-        std::cout << "\n[X] Non puoi condividere una lista con te stesso!\n";
-        pausa();
-        return;
-    }
-
-    // Verifica che l'utente esista
-    auto utenteDestinatario = gestore.getUtente(altroUtente);
-    if (!utenteDestinatario) {
-        std::cout << "\n[X] Utente '" << altroUtente << "' non trovato.\n";
-        std::cout << "Assicurati che l'utente sia registrato nel sistema.\n";
-        pausa();
-        return;
-    }
-
-    // Verifica che la lista non sia già condivisa con questo utente
-    auto listeCondiviseDestinatario = utenteDestinatario->getListeCondivise();
-    for (const auto& lista : listeCondiviseDestinatario) {
-        if (lista->getNome() == nomeLista && lista->getProprietario() == utente->getUsername()) {
-            std::cout << "\n[!] La lista '" << nomeLista << "' e' gia' condivisa con "
-                      << altroUtente << ".\n";
-            pausa();
-            return;
-        }
-    }
-
-    // Conferma finale
-    std::cout << "\nConfermi di voler condividere '" << nomeLista
-              << "' con " << altroUtente << "? (s/n): ";
-    std::string conferma;
-    std::getline(std::cin, conferma);
-
-    if (conferma != "s" && conferma != "S") {
-        std::cout << "Operazione annullata.\n";
-        pausa();
-        return;
-    }
-
-    // Esegui la condivisione
-    try {
-        gestore.condividiListaUtenteCorrente(nomeLista, altroUtente);
-
-        std::cout << "\n[OK] Lista condivisa con successo!\n";
-        std::cout << "----------------------------------------\n";
-        std::cout << "Lista: " << nomeLista << "\n";
-        std::cout << "Condivisa con: " << altroUtente << "\n";
-        std::cout << "\n[i] " << altroUtente << " ricevera' notifiche per ogni modifica.\n";
-        std::cout << "[i] La lista apparira' nelle sue 'Liste Condivise'.\n";
-
-    } catch (const std::exception& e) {
-        std::cout << "\n[X] Errore durante la condivisione: " << e.what() << "\n";
-    }
-
-    pausa();
-}
-
-// Gestione Oggetti
-void CLI::menuOggetti(std::shared_ptr<ListaDellaSpesa> lista) {
-    if (!lista) return;
-
-    while (true) {
-        clearScreen();
-        std::cout << "\n╔════════════════════════════════════╗\n";
-        std::cout << "║    GESTIONE OGGETTI                ║\n";
-        std::cout << "║    Lista: " << std::left << std::setw(24)
-                  << lista->getNome() << " ║\n";
-        std::cout << "╠════════════════════════════════════╣\n";
-        std::cout << "║ 1. Aggiungi oggetto                ║\n";
-        std::cout << "║ 2. Visualizza oggetti              ║\n";
-        std::cout << "║ 3. Rimuovi oggetto                 ║\n";
-        std::cout << "║ 4. Marca come acquistato           ║\n";
-        std::cout << "║ 5. Filtra per categoria            ║\n";
-        std::cout << "║ 6. Mostra statistiche              ║\n";
-        std::cout << "║ 7. Salva su file                   ║\n";
-        std::cout << "║ 8. Carica da file                  ║\n";
-        std::cout << "║ 0. Indietro                        ║\n";
-        std::cout << "╚════════════════════════════════════╝\n";
-
-        int scelta = leggiIntero("Scegli un'opzione: ", 0, 8);
-
-        switch (scelta) {
-            case 1: aggiungiOggetto(lista); break;
-            case 2: visualizzaOggetti(lista); break;
-            case 3: rimuoviOggetto(lista); break;
-            case 4: marcaAcquistato(lista); break;
-            case 5: filtraPerCategoria(lista); break;
-            case 6: mostraStatistiche(lista); break;
-            case 7: salvaLista(lista); break;
-            case 8: caricaLista(lista); break;
-            case 0: return;
-        }
-    }
-}
-
-void CLI::eliminaLista() {
-    clearScreen();
-    auto utente = gestore.getUtenteCorrente();
-    if (!utente) return;
-
-    auto liste = utente->getListePersonali();
-    if (liste.empty()) {
-        std::cout << "\nNon hai liste personali da eliminare.\n";
-        pausa();
-        return;
-    }
-
-    std::cout << "\n=== ELIMINA LISTA ===\n\n";
-    for (size_t i = 0; i < liste.size(); ++i) {
-        std::cout << "  " << (i + 1) << ". " << liste[i]->getNome() << "\n";
-    }
-    std::cout << "  0. Annulla\n\n";
-
-    int scelta = leggiIntero("Seleziona lista da eliminare: ", 0, static_cast<int>(liste.size()));
-    if (scelta == 0) return;
-
-    std::string nomeLista = liste[scelta - 1]->getNome();
-    std::cout << "\nConfermi l'eliminazione di '" << nomeLista << "'? (s/n): ";
-    std::string conferma;
-    std::getline(std::cin, conferma);
-    if (conferma != "s" && conferma != "S") {
-        std::cout << "Operazione annullata.\n";
-        pausa();
-        return;
-    }
-
-    utente->eliminaLista(nomeLista);
-    pausa();
 }
 
 void CLI::aggiungiOggetto(std::shared_ptr<ListaDellaSpesa> lista) {
@@ -619,8 +536,8 @@ void CLI::aggiungiOggetto(std::shared_ptr<ListaDellaSpesa> lista) {
     std::cout << "\n=== AGGIUNGI OGGETTO ===\n\n";
 
     std::string nome = leggiStringa("Nome oggetto: ");
-    if (nome.empty()) {
-        std::cout << "Il nome non può essere vuoto.\n";
+    if (!lista) {
+        std::cout << "Creazione fallita. Assicurati di essere loggato.\n";
         pausa();
         return;
     }
@@ -635,7 +552,6 @@ void CLI::aggiungiOggetto(std::shared_ptr<ListaDellaSpesa> lista) {
     try {
         Oggetto nuovoOggetto(nome, categoria, quantita);
         lista->aggiungiOggetto(nuovoOggetto);
-        std::cout << "\nOggetto aggiunto con successo!\n";
 
         // Mostra se è stato incrementato o aggiunto
         for (const auto& obj : lista->getOggetti()) {
@@ -689,7 +605,6 @@ void CLI::rimuoviOggetto(std::shared_ptr<ListaDellaSpesa> lista) {
 
     if (conferma == "s" || conferma == "S") {
         lista->rimuoviOggetto(nomeOggetto);
-        std::cout << "Oggetto rimosso!\n";
     } else {
         std::cout << "Operazione annullata.\n";
     }
@@ -741,8 +656,6 @@ void CLI::marcaAcquistato(std::shared_ptr<ListaDellaSpesa> lista) {
     std::string nomeOggetto = oggetti[indiceOriginale].getNome();
 
     lista->marcaAcquistato(nomeOggetto, true);  // Notifica l'Observer
-
-    std::cout << "\nOggetto marcato come acquistato!\n";
     pausa();
 }
 
@@ -823,7 +736,7 @@ void CLI::mostraStatistiche(std::shared_ptr<ListaDellaSpesa> lista) {
     std::cout << "Totale tipi di oggetti: " << totaleOggetti << "\n";
     std::cout << "Quantità totale: " << quantitaTotale << "\n";
     std::cout << "Oggetti acquistati: " << oggettiAcquistati << "\n";
-    std::cout << "🛒 Oggetti DA ACQUISTARE: " << (totaleOggetti - oggettiAcquistati) << "\n";
+    std::cout << "Oggetti da acquistare: " << (totaleOggetti - oggettiAcquistati) << "\n";
     std::cout << "Quantità da acquistare: " << quantitaDaAcquistare << "\n\n";
 
     // Lista oggetti da acquistare
@@ -897,48 +810,6 @@ void CLI::salvaLista(std::shared_ptr<ListaDellaSpesa> lista) {
         std::cout << "La lista verrà ora salvata automaticamente ad ogni modifica.\n";
     } catch (const std::exception& e) {
         std::cout << "Errore nel salvataggio: " << e.what() << "\n";
-    }
-
-    pausa();
-}
-
-void CLI::caricaLista(std::shared_ptr<ListaDellaSpesa> lista) {
-    clearScreen();
-    std::cout << "\n=== CARICA LISTA DA FILE ===\n\n";
-
-    std::string filename = leggiStringa("Nome file: ");
-
-    if (filename.empty()) {
-        std::cout << "Nome file non valido.\n";
-        pausa();
-        return;
-    }
-
-    // Aggiungi estensione .json se non presente
-    if (filename.find(".json") == std::string::npos) {
-        filename += ".json";
-    }
-
-    std::cout << "\nAttenzione: il contenuto attuale della lista verrà sostituito.\n";
-    std::cout << "Continuare? (s/n): ";
-
-    std::string conferma;
-    std::getline(std::cin, conferma);
-
-    if (conferma != "s" && conferma != "S") {
-        std::cout << "Operazione annullata.\n";
-        pausa();
-        return;
-    }
-
-    try {
-        lista->caricaDaFile(filename);
-        lista->setFilename(filename);
-        std::cout << "\nLista caricata con successo da '" << filename << "'!\n";
-        std::cout << "Oggetti caricati: " << lista->getOggetti().size() << "\n";
-    } catch (const std::exception& e) {
-        std::cout << "Errore nel caricamento: " << e.what() << "\n";
-        std::cout << "Verifica che il file esista e sia valido.\n";
     }
 
     pausa();

@@ -4,7 +4,7 @@
 Utente::Utente(const std::string& username) : username(username) {}
 
 void Utente::aggiorna(const std::string& messaggio) {
-    std::cout << "[" << username << "] Notifica: " << messaggio << std::endl;
+    std::cout << "[Notifica Observer] " << messaggio << std::endl;
 }
 
 std::shared_ptr<ListaDellaSpesa> Utente::creaLista(const std::string& nomeLista) {
@@ -17,7 +17,6 @@ std::shared_ptr<ListaDellaSpesa> Utente::creaLista(const std::string& nomeLista)
 void Utente::condividiLista(const std::string& nomeLista, std::shared_ptr<Utente> altroUtente) {
     std::shared_ptr<ListaDellaSpesa> lista = nullptr;
 
-    // ✅ CORRETTO: Cerca nelle liste PERSONALI, non in quelle condivise!
     for (const auto& l : listePersonali) {
         if (l->getNome() == nomeLista) {
             lista = l;
@@ -32,8 +31,6 @@ void Utente::condividiLista(const std::string& nomeLista, std::shared_ptr<Utente
         // Aggiungi la lista alle liste condivise dell'altro utente
         altroUtente->aggiungiListaCondivisa(lista);
 
-        std::cout << "[DEBUG] Lista '" << nomeLista << "' condivisa con "
-                  << altroUtente->getUsername() << std::endl;
     } else {
         if (!lista) {
             std::cout << "[ERRORE] Lista '" << nomeLista << "' non trovata" << std::endl;
@@ -52,7 +49,6 @@ void Utente::rimuoviListaCondivisa(std::shared_ptr<ListaDellaSpesa> lista) {
     for (auto it = listeCondivise.begin(); it != listeCondivise.end(); ++it) {
         if (*it == lista) {
             listeCondivise.erase(it);
-            std::cout << "[DEBUG] Lista condivisa rimossa da " << username << std::endl;
             return;
         }
     }

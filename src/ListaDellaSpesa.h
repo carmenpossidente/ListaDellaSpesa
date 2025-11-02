@@ -35,7 +35,6 @@ public:
     void setFilename(const std::string& filename);
     const std::vector<Oggetto>& getOggetti() const;
     void salvaSuFile(const std::string& filename) const;
-    void caricaDaFile(const std::string& filename);
     std::vector<Oggetto> filtraPerCategoria(const std::string& categoria) const;
     std::map<std::string, int> contaPerCategoria() const;
     int getQuantitaDaAcquistare() const;

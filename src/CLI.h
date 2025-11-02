@@ -27,6 +27,7 @@ private:
     void selezionaLista();
     void eliminaLista();
     void condividiLista();
+    void annullaCondivisioneLista();
 
     // Metodi per gestione oggetti
     void menuOggetti(std::shared_ptr<ListaDellaSpesa> lista);
@@ -39,7 +40,6 @@ private:
 
     // Metodi per gestione file
     void salvaLista(std::shared_ptr<ListaDellaSpesa> lista);
-    void caricaLista(std::shared_ptr<ListaDellaSpesa> lista);
 
     // Utility
     void clearScreen();

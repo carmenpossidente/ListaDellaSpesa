@@ -5,11 +5,10 @@
 ContatoreOggetti::ContatoreOggetti() : numeroDaAcquistare(0) {}
 
 void ContatoreOggetti::aggiorna(const std::string& messaggio) {
-    std::cout << "[Observer] Ricevuto: " << messaggio << std::endl;
+    
 
     // Caso: reset dopo caricamento da file
     if (messaggio.find("caricata da file") != std::string::npos) {
-        std::cout << "[Observer] Lista caricata da file - reset del contatore" << std::endl;
         oggettiDaAcquistare.clear();
         numeroDaAcquistare = 0;
         return;
@@ -39,34 +38,25 @@ void ContatoreOggetti::aggiorna(const std::string& messaggio) {
             if (oggettiDaAcquistare.find(nome) == oggettiDaAcquistare.end()) {
                 oggettiDaAcquistare[nome] = false;
                 numeroDaAcquistare++;
-                std::cout << "[Observer] Aggiunto '" << nome << "' come da acquistare. Totale: "
-                          << numeroDaAcquistare << std::endl;
             }
         } else if (azione == "aggiornato") {
-            std::cout << "[Observer] Quantita' aggiornata per '" << nome << "'" << std::endl;
         } else if (azione == "rimosso") {
             auto it = oggettiDaAcquistare.find(nome);
             if (it != oggettiDaAcquistare.end()) {
                 if (!it->second) numeroDaAcquistare--;
                 oggettiDaAcquistare.erase(it);
-                std::cout << "[Observer] Rimosso '" << nome << "'. Totale da acquistare: "
-                          << numeroDaAcquistare << std::endl;
             }
         } else if (azione == "marcato_acquistato") {
             auto it = oggettiDaAcquistare.find(nome);
             if (it != oggettiDaAcquistare.end() && !it->second) {
                 it->second = true;
                 numeroDaAcquistare--;
-                std::cout << "[Observer] '" << nome << "' marcato come acquistato. Restano da acquistare: "
-                          << numeroDaAcquistare << std::endl;
             }
         } else if (azione == "marcato_non_acquistato") {
             auto it = oggettiDaAcquistare.find(nome);
             if (it != oggettiDaAcquistare.end() && it->second) {
                 it->second = false;
                 numeroDaAcquistare++;
-                std::cout << "[Observer] '" << nome << "' rimesso tra gli oggetti da acquistare. Totale: "
-                          << numeroDaAcquistare << std::endl;
             }
         }
     }

@@ -62,9 +62,9 @@ void ListaDellaSpesa::marcaAcquistato(const std::string& nome, bool acquistato) 
             // Notifica solo se c'è un cambio di stato
             if (vecchioStato != acquistato) {
                 if (acquistato) {
-                    notificaObservers("Oggetto marcato_acquistato: " + nome);
+                    notificaObservers("Oggetto marcato come acquistato: " + nome);
                 } else {
-                    notificaObservers("Oggetto marcato_non_acquistato: " + nome);
+                    notificaObservers("Oggetto marcato come non acquistato: " + nome);
                 }
             }
 
@@ -116,44 +116,6 @@ void ListaDellaSpesa::salvaSuFile(const std::string& filename) const {
 
     std::ofstream out(filename);
     out << j_array.dump(4);  // pretty print con indentazione
-}
-
-void ListaDellaSpesa::caricaDaFile(const std::string& filename) {
-    std::ifstream in(filename);
-    if (!in.is_open()) return;
-
-    json j_array;
-    in >> j_array;
-
-    oggetti.clear();
-
-    // Prima notifica il reset
-    notificaObservers("Lista caricata da file");
-
-    // Poi carica gli oggetti e notifica uno per uno
-    for (const auto& j_ogg : j_array) {
-        Oggetto o(
-                j_ogg["nome"].get<std::string>(),
-                j_ogg["categoria"].get<std::string>(),
-                j_ogg["quantita"].get<int>()
-        );
-
-        bool acquistato = false;
-        if (j_ogg.contains("acquistato")) {
-        acquistato = j_ogg["acquistato"].get<bool>();
-        o.setAcquistato(acquistato);
-        }
-
-        oggetti.push_back(o);
-
-        // Notifica l'aggiunta con lo stato corretto
-        if (acquistato) {
-            notificaObservers("Oggetto aggiunto: " + o.getNome());
-            notificaObservers("Oggetto marcato_acquistato: " + o.getNome());
-        } else {
-            notificaObservers("Oggetto aggiunto: " + o.getNome());
-        }
-    }
 }
 
 std::vector<Oggetto> ListaDellaSpesa::filtraPerCategoria(const std::string& cat) const {

@@ -16,7 +16,7 @@ void GestoreListe::annullaCondivisioneUtenteCorrente(const std::string& nomeList
         // Rimuovi l'altro utente come observer e rimuovi la lista dalle sue condivise
         lista->rimuoviObserver(altroUtentePtr);
         altroUtentePtr->rimuoviListaCondivisa(lista);
-        std::cout << "[DEBUG] Condivisione annullata" << std::endl;
+        std::cout << "Condivisione annullata" << std::endl;
     } else {
         if (!lista) {
             std::cout << "[ERRORE] Lista '" << nomeLista << "' non trovata" << std::endl;
@@ -77,7 +77,7 @@ void GestoreListe::condividiListaUtenteCorrente(const std::string& nomeLista, co
         // Condividi la lista
         utenteCorrente->condividiLista(nomeLista, altroUtentePtr);
 
-        std::cout << "[DEBUG] GestoreListe: condivisione eseguita" << std::endl;
+        std::cout << "Condivisione eseguita!" << std::endl;
     } else {
         if (!lista) {
             std::cout << "[ERRORE] Lista '" << nomeLista << "' non trovata" << std::endl;
