@@ -14,7 +14,7 @@ class Utente;
 class ListaDellaSpesa : public Observable {
 private:
     std::vector<Oggetto> oggetti;
-    std::vector<std::shared_ptr<Observer>> observers;
+    std::vector<std::weak_ptr<Observer>> observers;
     std::string defaultFilename;
     std::string nomeLista;
     std::string proprietario;
@@ -42,6 +42,7 @@ public:
     // Observable implementation
     void aggiungiObserver(std::shared_ptr<Observer> obs) override;
     void rimuoviObserver(std::shared_ptr<Observer> obs) override;
+
 };
 
 #endif

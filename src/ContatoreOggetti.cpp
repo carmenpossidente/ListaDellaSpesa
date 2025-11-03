@@ -7,13 +7,6 @@ ContatoreOggetti::ContatoreOggetti() : numeroDaAcquistare(0) {}
 void ContatoreOggetti::aggiorna(const std::string& messaggio) {
     
 
-    // Caso: reset dopo caricamento da file
-    if (messaggio.find("caricata da file") != std::string::npos) {
-        oggettiDaAcquistare.clear();
-        numeroDaAcquistare = 0;
-        return;
-    }
-
     // Parsing generico dei messaggi che iniziano con "Oggetto "
     if (messaggio.rfind("Oggetto ", 0) == 0) {
         // Trova separatore ": "
@@ -46,13 +39,13 @@ void ContatoreOggetti::aggiorna(const std::string& messaggio) {
                 if (!it->second) numeroDaAcquistare--;
                 oggettiDaAcquistare.erase(it);
             }
-        } else if (azione == "marcato_acquistato") {
+        } else if (azione == "marcato come acquistato") {
             auto it = oggettiDaAcquistare.find(nome);
             if (it != oggettiDaAcquistare.end() && !it->second) {
                 it->second = true;
                 numeroDaAcquistare--;
             }
-        } else if (azione == "marcato_non_acquistato") {
+        } else if (azione == "marcato come non acquistato") {
             auto it = oggettiDaAcquistare.find(nome);
             if (it != oggettiDaAcquistare.end() && it->second) {
                 it->second = false;

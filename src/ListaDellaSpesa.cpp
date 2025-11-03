@@ -82,26 +82,60 @@ const std::vector<Oggetto>& ListaDellaSpesa::getOggetti() const {
     return oggetti;
 }
 
-void ListaDellaSpesa::aggiungiObserver(std::shared_ptr<Observer> obs) {
-    observers.push_back(obs);
+
+void ListaDellaSpesa:: aggiungiObserver(std::shared_ptr<Observer> obs) {
+    // Evita duplicati e ripulisce scaduti
+    for (auto it = observers.begin(); it != observers.end();) {
+        if (it->expired()) {
+            it = observers.erase(it);
+            continue;
+        }
+        if (auto sp = it->lock()) {
+            if (sp == obs) {
+                return; // già presente → esco
+            }
+        }
+        ++it;
+    }
+
+    observers.push_back(obs); // aggiungi in fondo
 }
+
 
 void ListaDellaSpesa::rimuoviObserver(std::shared_ptr<Observer> obs) {
-    auto it = std::find_if(observers.begin(), observers.end(),
-                           [&](const std::shared_ptr<Observer>& o) { return o == obs; });
-    if (it != observers.end()) {
-        observers.erase(it);
-    } else {
-        std::cerr << "Observer non trovato.\n";
+    bool removed = false;
+    for (auto it = observers.begin(); it != observers.end();) {
+        if (it->expired()) {
+            it = observers.erase(it);
+            continue;
+        }
+        if (auto sp = it->lock()) {
+            if (sp == obs) {
+                it = observers.erase(it);
+                removed = true;
+                continue;
+            }
+        }
+        ++it;
+    }
+    if (!removed) {
+        std::cout << "Observer non trovato" << std::endl;
     }
 }
-
 
 void ListaDellaSpesa::notificaObservers(const std::string& messaggio) {
-    for (auto& obs : observers) {
-        obs->aggiorna(messaggio);
+    for (auto it = observers.begin(); it != observers.end();) {
+        if (it->expired()) {
+            it = observers.erase(it);
+            continue;
+        }
+        if (auto sp = it->lock()) {
+            sp->aggiorna(messaggio);
+        }
+        ++it;
     }
 }
+
 
 void ListaDellaSpesa::salvaSuFile(const std::string& filename) const {
     json j_array = json::array();
