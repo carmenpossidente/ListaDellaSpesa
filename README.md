@@ -26,9 +26,11 @@ Applicazione C++ per la gestione di liste della spesa, con supporto a più liste
 - **Controller**: `GestoreListe` (orchestrazione multi-utente)
 
 ### Smart Pointers (RAII)
-Uso sistematico di std::shared_ptr per gestione automatica della memoria
-- Prevenzione di memory leak e dangling pointer
-- Condivisione sicura di risorse tra componenti
+- std::shared_ptr per la gestione condivisa della memoria delle liste
+→ un oggetto ListaDellaSpesa rimane vivo finché almeno un utente lo possiede
+
+- std::weak_ptr per i riferimenti agli observer
+→ la ListaDellaSpesa notifica gli Observer senza detenerli, evitando cicli di riferimento e memory leak
 
 
 ### Struttura del Progetto
